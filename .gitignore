@@ -1,2 +1,10 @@
 .env
 /src/generated/prisma
+node_modules/
+.env.*
+!.env.example
+
+uploads/
+*.log
+
+.DS_Store
