@@ -17,30 +17,42 @@ const registerUser = async ({
   });
 
   if (existingUser) {
-    throw new Error("Email already registered");
+    const error = new Error("Email already registered");
+    error.statusCode = 409;
+    throw error;
   }
 
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  const user = await prisma.user.create({
-    data: {
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      phone,
-    },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      phone: true,
-      role: true,
-      isActive: true,
-      createdAt: true,
-    },
-  });
+  let user;
+  try {
+    user = await prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        phone,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      },
+    });
+  } catch (error) {
+    if (error.code === "P2002" && error.meta?.target?.includes("email")) {
+      const conflict = new Error("Email already registered");
+      conflict.statusCode = 409;
+      throw conflict;
+    }
+    throw error;
+  }
 
   return user;
 };
