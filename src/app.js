@@ -30,6 +30,9 @@ const allowedOrigins = (process.env.CORS_ORIGINS || "")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(new URL(process.env.FRONTEND_URL).origin);
+}
 app.use(
   cors({
     origin(origin, callback) {
