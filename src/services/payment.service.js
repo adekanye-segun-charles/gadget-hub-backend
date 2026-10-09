@@ -5,6 +5,23 @@ const generatePaymentReference = () => {
   return `GH-PAY-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 };
 
+const callPaystack = async (request) => {
+  try {
+    return await request();
+  } catch (cause) {
+    if (cause.statusCode === 503) throw cause;
+
+    const invalidKey = cause.response?.status === 401
+      || cause.response?.data?.code === "invalid_Key";
+    const error = new Error(invalidKey
+      ? "Payments are temporarily unavailable because the Paystack secret key is missing or invalid. Please contact support."
+      : "The payment provider could not be reached. Please try again shortly.");
+    error.statusCode = invalidKey ? 503 : 502;
+    error.cause = cause;
+    throw error;
+  }
+};
+
 const initializePayment = async (userId, orderId) => {
   const order = await prisma.order.findFirst({
     where: {
@@ -52,7 +69,7 @@ const initializePayment = async (userId, orderId) => {
 
   const amountInKobo = Math.round(Number(order.totalAmount) * 100);
 
-  const response = await paystack.post("/transaction/initialize", {
+  const response = await callPaystack(() => paystack.post("/transaction/initialize", {
     email: order.user.email,
     amount: amountInKobo,
     currency: "NGN",
@@ -65,7 +82,7 @@ const initializePayment = async (userId, orderId) => {
       orderNumber: order.orderNumber,
       userId: userId,
     },
-  });
+  }));
 
   if (!response.data.status) {
     throw new Error(
@@ -109,9 +126,9 @@ const verifyPayment = async (userId, reference) => {
     throw new Error("You are not authorized to verify this payment");
   }
 
-  const response = await paystack.get(
+  const response = await callPaystack(() => paystack.get(
     `/transaction/verify/${encodeURIComponent(reference)}`
-  );
+  ));
 
   if (!response.data.status) {
     throw new Error(

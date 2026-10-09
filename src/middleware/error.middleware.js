@@ -1,5 +1,15 @@
 const errorHandler = (err, req, res, next) => {
-  console.error("ERROR:", err);
+  if (err.cause?.isAxiosError) {
+    console.error("Payment provider request failed:", {
+      method: req.method,
+      path: req.originalUrl,
+      status: err.cause.response?.status,
+      providerCode: err.cause.response?.data?.code,
+      message: err.message,
+    });
+  } else {
+    console.error("ERROR:", err);
+  }
 
   if (res.headersSent) {
     return next(err);
