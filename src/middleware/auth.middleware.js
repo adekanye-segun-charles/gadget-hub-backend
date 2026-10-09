@@ -1,6 +1,17 @@
 const jwt = require("jsonwebtoken");
+const { getJwtSecret } = require("../utils/jwt");
 
 const protect = (req, res, next) => {
+  let secret;
+  try {
+    secret = getJwtSecret();
+  } catch (error) {
+    return res.status(error.statusCode || 503).json({
+      success: false,
+      message: error.message,
+    });
+  }
+
   try {
     const authHeader = req.headers.authorization;
 
@@ -13,7 +24,7 @@ const protect = (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, secret);
 
     req.user = decoded;
 

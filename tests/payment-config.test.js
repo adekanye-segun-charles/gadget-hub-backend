@@ -17,6 +17,7 @@ test("Paystack client rejects missing or malformed secret keys before making a r
       paystack.get("/transaction/verify/test-reference"),
       {
         statusCode: 503,
+        isOperational: true,
         message: "Paystack is not configured. Set a valid PAYSTACK_SECRET_KEY in the backend environment.",
       }
     );

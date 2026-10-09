@@ -17,6 +17,7 @@ const callPaystack = async (request) => {
       ? "Payments are temporarily unavailable because the Paystack secret key is missing or invalid. Please contact support."
       : "The payment provider could not be reached. Please try again shortly.");
     error.statusCode = invalidKey ? 503 : 502;
+    error.isOperational = true;
     error.cause = cause;
     throw error;
   }

@@ -12,6 +12,7 @@ paystack.interceptors.request.use((config) => {
   if (!secretKey || !/^sk_(test|live)_.+/.test(secretKey)) {
     const error = new Error("Paystack is not configured. Set a valid PAYSTACK_SECRET_KEY in the backend environment.");
     error.statusCode = 503;
+    error.isOperational = true;
     throw error;
   }
 

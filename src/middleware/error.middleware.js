@@ -17,7 +17,7 @@ const errorHandler = (err, req, res, next) => {
 
   const status = err.statusCode || err.status || 500;
   const message =
-    process.env.NODE_ENV === "production" && status >= 500
+    process.env.NODE_ENV === "production" && status >= 500 && !err.isOperational
       ? "Something went wrong on the server. Please try again later."
       : err.message || "Something went wrong";
 
