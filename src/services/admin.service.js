@@ -1473,7 +1473,15 @@ const getAdminPayments = async ({
   orderId,
   sortOrder = "desc",
 }) => {
-  const skip = (page - 1) * limit;
+  const requestedPage = Number(page);
+  const requestedLimit = Number(limit);
+  const parsedPage = Number.isInteger(requestedPage) && requestedPage > 0
+    ? requestedPage
+    : 1;
+  const parsedLimit = Number.isInteger(requestedLimit) && requestedLimit > 0
+    ? Math.min(requestedLimit, 100)
+    : 10;
+  const skip = (parsedPage - 1) * parsedLimit;
 
   const where = {
     ...(status && {
@@ -1512,7 +1520,7 @@ const getAdminPayments = async ({
     prisma.payment.findMany({
       where,
       skip,
-      take: limit,
+      take: parsedLimit,
 
       orderBy: {
         createdAt: sortOrder,
@@ -1548,10 +1556,10 @@ const getAdminPayments = async ({
   return {
     payments,
     pagination: {
-      page,
-      limit,
+      page: parsedPage,
+      limit: parsedLimit,
       total,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / parsedLimit),
     },
   };
 };

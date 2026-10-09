@@ -15,6 +15,14 @@ router.post(
   uploadController.uploadImage
 );
 
+router.post(
+  "/categories/:categoryId/image",
+  protect,
+  adminOnly,
+  upload.single("image"),
+  uploadController.uploadCategoryImage
+);
+
 router.delete(
   "/image",
   protect,

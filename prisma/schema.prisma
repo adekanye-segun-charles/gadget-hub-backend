@@ -33,16 +33,18 @@ enum DiscountType {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  firstName String
-  lastName  String
-  email     String   @unique
-  password  String
-  phone     String?
-  role      UserRole @default(CUSTOMER)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   String   @id @default(uuid())
+  firstName            String
+  lastName             String
+  email                String   @unique
+  password             String
+  phone                String?
+  passwordResetToken   String?  @unique
+  passwordResetExpires DateTime?
+  role                 UserRole @default(CUSTOMER)
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   cart         Cart?
   wishlist     Wishlist?
@@ -60,6 +62,7 @@ model Category {
   slug        String   @unique
   description String?
   image       String?
+  publicId    String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

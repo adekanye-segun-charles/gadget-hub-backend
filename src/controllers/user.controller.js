@@ -33,25 +33,6 @@ const updateProfile = async (req, res, next) => {
 };
 
 
-const changePassword = async (req, res, next) => {
-  try {
-    const result = await userService.changePassword(
-      req.user.userId,
-      req.body.currentPassword,
-      req.body.newPassword
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Password changed successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-
 const deleteMyAccount = async (req, res, next) => {
   try {
     const result = await userService.deleteMyAccount(
@@ -72,6 +53,5 @@ const deleteMyAccount = async (req, res, next) => {
 module.exports = {
   getMe,
   updateProfile,
-  changePassword,
   deleteMyAccount,
 };

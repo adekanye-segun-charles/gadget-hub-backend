@@ -83,6 +83,58 @@ const uploadProductImage = (productId, file) => {
   });
 };
 
+const uploadCategoryImage = async (categoryId, file) => {
+  if (!file) {
+    const error = new Error("Image file is required");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+  });
+
+  if (!category) {
+    const error = new Error("Category not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const result = await new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "gadget-hub/categories",
+        public_id: categoryId,
+        overwrite: true,
+        invalidate: true,
+        resource_type: "image",
+      },
+      (error, uploadedImage) => {
+        if (error) reject(error);
+        else resolve(uploadedImage);
+      }
+    );
+
+    uploadStream.end(file.buffer);
+  });
+
+  const updatedCategory = await prisma.category.update({
+    where: { id: categoryId },
+    data: {
+      image: result.secure_url,
+    },
+  });
+
+  return {
+    id: updatedCategory.id,
+    image: updatedCategory.image,
+    width: result.width,
+    height: result.height,
+    format: result.format,
+    bytes: result.bytes,
+  };
+};
+
 const deleteImage = async (publicId) => {
   if (!publicId) {
     const error = new Error("Cloudinary public ID is required");
@@ -150,6 +202,7 @@ const setPrimaryImage = async (productId, imageId) => {
 
 module.exports = {
   uploadProductImage,
+  uploadCategoryImage,
   deleteImage,
   setPrimaryImage,
 };

@@ -1,5 +1,4 @@
 const prisma = require("../config/database");
-const bcrypt = require("bcrypt");
 
 const getUserById = async (userId) => {
   const user = await prisma.user.findUnique({
@@ -82,70 +81,6 @@ const updateProfile = async (userId, data) => {
 };
 
 
-const changePassword = async (
-  userId,
-  currentPassword,
-  newPassword
-) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-  });
-
-  if (!user) {
-    const error = new Error("User not found");
-    error.statusCode = 404;
-    throw error;
-  }
-
-  if (!user.isActive) {
-    const error = new Error("Your account is inactive");
-    error.statusCode = 403;
-    throw error;
-  }
-
-  const passwordMatch = await bcrypt.compare(
-    currentPassword,
-    user.password
-  );
-
-  if (!passwordMatch) {
-    const error = new Error("Current password is incorrect");
-    error.statusCode = 400;
-    throw error;
-  }
-
-  const samePassword = await bcrypt.compare(
-    newPassword,
-    user.password
-  );
-
-  if (samePassword) {
-    const error = new Error(
-      "New password must be different from current password"
-    );
-    error.statusCode = 400;
-    throw error;
-  }
-
-  const hashedPassword = await bcrypt.hash(newPassword, 12);
-
-  await prisma.user.update({
-    where: {
-      id: userId,
-    },
-    data: {
-      password: hashedPassword,
-    },
-  });
-
-  return {
-    passwordChanged: true,
-  };
-};
-
-
 const deleteMyAccount = async (userId) => {
   const user = await prisma.user.findUnique({
     where: {
@@ -180,6 +115,5 @@ const deleteMyAccount = async (userId) => {
 module.exports = {
   getUserById,
   updateProfile,
-  changePassword,
   deleteMyAccount,
 };

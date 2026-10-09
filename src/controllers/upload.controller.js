@@ -15,6 +15,17 @@ const uploadImage = async (req, res) => {
   });
 };
 
+const uploadCategoryImage = async (req, res) => {
+  const { categoryId } = req.params;
+  const result = await uploadService.uploadCategoryImage(categoryId, req.file);
+
+  return res.status(200).json({
+    success: true,
+    message: "Category image uploaded successfully",
+    data: result,
+  });
+};
+
 const deleteImage = async (req, res) => {
   const { publicId } = req.body;
 
@@ -44,6 +55,7 @@ const setPrimaryImage = async (req, res) => {
 
 module.exports = {
   uploadImage,
+  uploadCategoryImage,
   deleteImage,
   setPrimaryImage,
 };

@@ -6,6 +6,7 @@ const productQuerySchema = require("../src/validators/product.validator")
 const validateQuery = require("../src/middleware/validateQuery.middleware");
 const prisma = require("../src/config/database");
 const { getAllProducts } = require("../src/services/product.service");
+const { getAdminPayments } = require("../src/services/admin.service");
 
 function runValidation(query) {
   return new Promise((resolve) => {
@@ -91,4 +92,32 @@ test("product listing maps validated filters to Prisma query options", async (t)
   assert.deepEqual(options.where.price, { gte: 20, lte: 100 });
   assert.equal(options.where.OR.length, 3);
   assert.deepEqual(options.orderBy, { price: "asc" });
+});
+
+test("admin payment listing converts query pagination to bounded integers", async (t) => {
+  const delegate = prisma.payment;
+  const originalFindMany = delegate.findMany;
+  const originalCount = delegate.count;
+  let options;
+  delegate.findMany = async (queryOptions) => {
+    options = queryOptions;
+    return [];
+  };
+  delegate.count = async () => 205;
+  t.after(() => {
+    delegate.findMany = originalFindMany;
+    delegate.count = originalCount;
+  });
+
+  const result = await getAdminPayments({ page: "2", limit: "100" });
+
+  assert.equal(options.skip, 100);
+  assert.equal(options.take, 100);
+  assert.equal(typeof options.take, "number");
+  assert.deepEqual(result.pagination, {
+    page: 2,
+    limit: 100,
+    total: 205,
+    totalPages: 3,
+  });
 });
